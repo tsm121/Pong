@@ -28,8 +28,6 @@ class GameScene: SKScene {
         self.width = 10
         self.score1 = 0
         self.score2 = 0
-        self.label1 = self.childNode(withName: "label1") as! SKLabelNode
-        self.label2 = self.childNode(withName: "label2") as! SKLabelNode
         self.createArea()
         
         paddle1 = Paddle(width: self.width, height: self.height)
@@ -37,9 +35,17 @@ class GameScene: SKScene {
         paddle1.position = CGPoint(x: 30, y: self.size.height/2)
         paddle2.position = CGPoint(x: self.size.width-30, y: self.size.height/2)
         
+        self.label1.position = CGPoint(x: self.size.width/2 - 50,y: self.size.height/2 + 150)
+        self.label1.zRotation = CGFloat(300)
+        self.label2.position = CGPoint(x: self.size.width/2 + 50,y: self.size.height/2 + 150)
+        self.label2.zRotation = CGFloat(300)
+        
 
         self.addChild(paddle1)
         self.addChild(paddle2)
+        self.addChild(label1)
+        self.addChild(label2)
+        
         self.createBall(num: 1)
         self.startGame()
     }
@@ -60,7 +66,7 @@ class GameScene: SKScene {
     func followBall(paddle: SKShapeNode) {
         
         let xPos = self.frame.width/2
-        let maxSpeed: CGFloat = 10
+        let maxSpeed: CGFloat = 3
         let delta = ball.position.y - paddle.position.y
         if ball.position.x > xPos {
             
@@ -91,8 +97,8 @@ class GameScene: SKScene {
     }
     
     func startGame() {
-        label1.text = "\(score1)"
-        label2.text = "\(score2)"
+        label1.text = "\(score1!)"
+        label2.text = "\(score2!)"
         ball.physicsBody?.velocity = CGVector(dx:350, dy:self.getRandomNum(lowerValue: -45, upperValue: 45))
     }
     
@@ -128,8 +134,9 @@ class GameScene: SKScene {
 
         }
         
-        label1.text = "\(score1)"
-        label2.text = "\(score2)"
+        label1.text = "\(score1!)"
+        label2.text = "\(score2!)"
+        print("P1: \(score1!), P2: \(score2!)")
         
     }
     
@@ -156,6 +163,14 @@ class GameScene: SKScene {
         }
     }
     
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        for touch in touches {
+            let touchLocation = touch.location(in: self)
+            
+            paddle1.run(SKAction.moveTo(y: touchLocation.y, duration: 0.1))
+        }
+    }
     
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
