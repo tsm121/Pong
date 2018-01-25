@@ -9,7 +9,15 @@
 import SpriteKit
 import GameplayKit
 
-class GameScene: SKScene {
+
+struct PhysicsCategory {
+    static let None:        UInt32 = 0      //  0
+    static let Edge:        UInt32 = 0b1    //  1
+    static let Paddle:      UInt32 = 0b10   //  2
+    static let Ball:        UInt32 = 0b100  //  4
+}
+
+class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private var paddle1: Paddle!
     private var paddle2: Paddle!
@@ -27,9 +35,11 @@ class GameScene: SKScene {
 
         self.setPaddles()
         self.setLabels()
-        self.createArea()
+        //self.createArea()
         
         self.createBall(num: 1)
+        self.createArea()
+        physicsWorld.contactDelegate = self
         self.startGame()
     }
     
@@ -37,12 +47,17 @@ class GameScene: SKScene {
         // Called before each frame is rendered
         followBall(paddle: paddle2)
         
+        // Wall bounce hardcode
+        if ball.position.y < 20 || ball.position.y > self.frame.height - 20 {
+            ball.physicsBody?.velocity.dy = -CGFloat((ball.physicsBody?.velocity.dy)!)
+        }
+        
         
         // Add scores
         if ball.position.x < paddle1.position.x {
             addScore(paddle: paddle2)
         } else if ball.position.x > paddle2.position.x {
-            addScore(paddle: paddle2)
+            addScore(paddle: paddle1)
         }
     }
     
@@ -107,6 +122,10 @@ class GameScene: SKScene {
             ball.physicsBody?.restitution = CGFloat(1.0002)
             ball.physicsBody?.linearDamping = CGFloat(0)
             ball.physicsBody?.angularDamping = CGFloat(0)
+            ball.physicsBody = SKPhysicsBody(circleOfRadius: ball.frame.height/2)
+            ball.physicsBody!.categoryBitMask = PhysicsCategory.Ball
+            ball.physicsBody!.collisionBitMask = PhysicsCategory.Edge | PhysicsCategory.Paddle
+            ball.physicsBody?.usesPreciseCollisionDetection = true
             ball.name = "ball"
             self.addChild(ball)
         }
@@ -124,10 +143,13 @@ class GameScene: SKScene {
         self.backgroundColor = UIColor.black
         self.scaleMode = .aspectFill
         self.physicsBody = SKPhysicsBody(edgeLoopFrom: self.frame)
-            self.physicsBody?.friction = CGFloat(0)
+
+        self.physicsBody?.friction = CGFloat(0)
         self.physicsBody?.restitution = CGFloat(0)
         self.physicsBody?.angularDamping = CGFloat(0)
         self.physicsBody?.linearDamping = CGFloat(0)
+        self.physicsBody!.categoryBitMask = 0
+        self.physicsBody?.isDynamic = false
 
     }
     //Create random number
@@ -152,7 +174,6 @@ class GameScene: SKScene {
         
         label1.text = "\(score1!)"
         label2.text = "\(score2!)"
-        print("P1: \(score1!), P2: \(score2!)")
         
     }
     
@@ -186,6 +207,8 @@ class GameScene: SKScene {
             fatalError("init(coder:) has not been implemented")
         }
     }
+    
+    
     
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
