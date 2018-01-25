@@ -13,15 +13,23 @@ class GameScene: SKScene {
     
     private var paddle1: Paddle!
     private var paddle2: Paddle!
-    private var ball: SKShapeNode!
+    private var ball: SKShapeNode!  
     private var height: Double!
     private var width: Double!
+    private var score1: Int!
+    private var score2: Int!
+    
+    private var label1 = SKLabelNode()
+    private var label2 = SKLabelNode()
     
     override func didMove(to view: SKView) {
         
         self.height = 50
         self.width = 10
-        
+        self.score1 = 0
+        self.score2 = 0
+        self.label1 = self.childNode(withName: "label1") as! SKLabelNode
+        self.label2 = self.childNode(withName: "label2") as! SKLabelNode
         self.createArea()
         
         paddle1 = Paddle(width: self.width, height: self.height)
@@ -29,9 +37,6 @@ class GameScene: SKScene {
         paddle1.position = CGPoint(x: 30, y: self.size.height/2)
         paddle2.position = CGPoint(x: self.size.width-30, y: self.size.height/2)
         
-
-
-
 
         self.addChild(paddle1)
         self.addChild(paddle2)
@@ -41,8 +46,15 @@ class GameScene: SKScene {
     
     override func update(_ currentTime: TimeInterval) {
         // Called before each frame is rendered
-        
         followBall(paddle: paddle2)
+        
+        
+        // Add scores
+        if ball.position.x < paddle1.position.x {
+            addScore(paddle: paddle2)
+        } else if ball.position.x > paddle2.position.x {
+            addScore(paddle: paddle2)
+        }
     }
     
     func followBall(paddle: SKShapeNode) {
@@ -64,7 +76,7 @@ class GameScene: SKScene {
     
     func createBall(num:Int){
         for _ in 1...num {
-            ball = SKShapeNode(circleOfRadius: 5)
+            ball = SKShapeNode(circleOfRadius: 10)
             ball.fillColor = UIColor.white
             ball.position = CGPoint(x: self.size.width/2,y: self.size.height/2)
             ball.physicsBody = SKPhysicsBody(circleOfRadius: ball.frame.height/2)
@@ -79,6 +91,8 @@ class GameScene: SKScene {
     }
     
     func startGame() {
+        label1.text = "\(score1)"
+        label2.text = "\(score2)"
         ball.physicsBody?.velocity = CGVector(dx:350, dy:self.getRandomNum(lowerValue: -45, upperValue: 45))
     }
     
@@ -90,13 +104,33 @@ class GameScene: SKScene {
         self.physicsBody = SKPhysicsBody(edgeLoopFrom: self.frame)
         self.physicsBody?.friction = 0
         self.physicsBody?.restitution = 1
-        self.physicsBody?.angularDamping = 1
+        self.physicsBody?.angularDamping = 0
         self.physicsBody?.linearDamping = 0
 
     }
     //Create random number
     func getRandomNum(lowerValue:Int, upperValue:Int) -> Int{
         return Int(arc4random_uniform(UInt32(upperValue - lowerValue + 1))) +   lowerValue
+    }
+    
+    func addScore(paddle: Paddle) {
+        ball.position = CGPoint(x: self.size.width/2,y: self.size.height/2)
+        ball.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
+        
+        if paddle == paddle1 {
+            self.score1 = self.score1 + 1
+            ball.physicsBody?.applyImpulse(CGVector(dx: 4, dy: 2))
+
+        }
+        else if paddle == paddle2 {
+            self.score2 = self.score2 + 1
+            ball.physicsBody?.applyImpulse(CGVector(dx: -4, dy: -2))
+
+        }
+        
+        label1.text = "\(score1)"
+        label2.text = "\(score2)"
+        
     }
     
     
@@ -125,17 +159,12 @@ class GameScene: SKScene {
     
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        
         for touch in touches{
-            var touchLocation = touch.location(in: self)
-            let targetNode = atPoint(touchLocation) as? SKShapeNode
+            let touchLocation = touch.location(in: self)
             
-            if targetNode == nil{
-                return
-            } else if targetNode?.name != "ball"{
-                targetNode?.physicsBody?.velocity = CGVector(dx: 0, dy:0)
-                touchLocation = touch.location(in: self)
-                targetNode?.position.y = (touchLocation.y)
+            paddle1.run(SKAction.moveTo(y: touchLocation.y, duration: 0.1))
             }
         }
     }
-}
+
