@@ -1,9 +1,5 @@
 //
-//  GameScene.swift
-//  Pong
-//
-//  Created by Thomas Markussen on 24/01/2018.
-//  Copyright © 2018 ThomasM. All rights reserved.
+//  Pong 9000^69
 //
 
 import SpriteKit
@@ -29,7 +25,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var label1 = SKLabelNode()
     private var label2 = SKLabelNode()
     private var winnerLabel = SKLabelNode()
-    private let goal = 5
+    private let goal = 21
     private var winner: Paddle!
     
     override func didMove(to view: SKView) {
@@ -49,6 +45,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Called before each frame is rendered
     override func update(_ currentTime: TimeInterval) {
         
+        //Winner/Loser lables
         if self.score1 == self.goal {
             self.winner = self.paddle1
             self.winnerLabel.text = "You WON!"
@@ -128,7 +125,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         //Calculating delta between ball and paddle.
         //Moves paddle with a given speed to match y-position to ball
         let xPos = self.frame.width/2
-        let maxSpeed: CGFloat = 3
+        let maxSpeed: CGFloat = 2.5
         let delta = ball.position.y - paddle.position.y
         
         if ball.position.x > xPos {
@@ -151,7 +148,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             ball.physicsBody?.affectedByGravity = false
             ball.physicsBody?.mass = CGFloat(1)
             ball.physicsBody?.friction = CGFloat(0)
-            ball.physicsBody?.restitution = CGFloat(1)
+            ball.physicsBody?.restitution = CGFloat(1.025)
             ball.physicsBody?.linearDamping = CGFloat(0)
             ball.physicsBody?.angularDamping = CGFloat(0)
             ball.physicsBody!.categoryBitMask = PhysicsCategory.Ball
@@ -166,10 +163,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func startGame() {
         label1.text = "\(score1!)"
         label2.text = "\(score2!)"
-        print("start game")
-        ball.physicsBody?.applyImpulse(CGVector(dx:300, dy:self.getRandomNum(lowerValue: -45, upperValue: 45)))
+        ball.physicsBody?.applyImpulse(CGVector(dx:400, dy:self.getRandomNum(lowerValue: -45, upperValue: 45)))
     }
     
+    //Stop game when a paddle has gotten full score
     func stopGame() {
         self.score1 = 0
         self.score2 = 0
@@ -202,7 +199,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     //Add score to winning paddle. Set score lable
     func addScore(paddle: Paddle) {
-        print("added score")
         ball.position = CGPoint(x: self.size.width/2,y: self.size.height/2)
         ball.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
         
