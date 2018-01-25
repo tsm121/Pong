@@ -24,27 +24,9 @@ class GameScene: SKScene {
     
     override func didMove(to view: SKView) {
         
-        self.height = 50
-        self.width = 10
-        self.score1 = 0
-        self.score2 = 0
+        self.setPaddles()
+        self.setLabels()
         self.createArea()
-        
-        paddle1 = Paddle(width: self.width, height: self.height)
-        paddle2 = Paddle(width: self.width, height: self.height)
-        paddle1.position = CGPoint(x: 30, y: self.size.height/2)
-        paddle2.position = CGPoint(x: self.size.width-30, y: self.size.height/2)
-        
-        self.label1.position = CGPoint(x: self.size.width/2 - 50,y: self.size.height/2 + 150)
-        self.label1.zRotation = CGFloat(300)
-        self.label2.position = CGPoint(x: self.size.width/2 + 50,y: self.size.height/2 + 150)
-        self.label2.zRotation = CGFloat(300)
-        
-
-        self.addChild(paddle1)
-        self.addChild(paddle2)
-        self.addChild(label1)
-        self.addChild(label2)
         
         self.createBall(num: 1)
         self.startGame()
@@ -61,6 +43,38 @@ class GameScene: SKScene {
         } else if ball.position.x > paddle2.position.x {
             addScore(paddle: paddle2)
         }
+    }
+    
+    func setLabels(){
+        self.score1 = 0
+        self.score2 = 0
+        
+        self.label1.position = CGPoint(x: self.frame.width/2 - 40,y: self.frame.height/2 + 170)
+        self.label2.position = CGPoint(x: self.frame.width/2 + 10,y: self.frame.height/2 + 170)
+
+        self.label1.zRotation = CGFloat(300)
+        self.label2.zRotation = CGFloat(300)
+
+        self.label1.fontName = "Chalkduster"
+        self.label2.fontName = "Chalkduster"
+        
+        self.addChild(label1)
+        self.addChild(label2)
+    }
+    
+    func setPaddles(){
+        self.height = 50
+        self.width = 10
+    
+        paddle1 = Paddle(width: self.width, height: self.height)
+        paddle2 = Paddle(width: self.width, height: self.height)
+        
+        paddle1.position = CGPoint(x: 30, y: self.size.height/2)
+        paddle2.position = CGPoint(x: self.size.width-30, y: self.size.height/2)
+        
+        self.addChild(paddle1)
+        self.addChild(paddle2)
+        
     }
     
     func followBall(paddle: SKShapeNode) {
