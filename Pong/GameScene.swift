@@ -28,6 +28,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var score2: Int!
     private var label1 = SKLabelNode()
     private var label2 = SKLabelNode()
+    private var winnerLabel = SKLabelNode()
+    private let goal = 5
+    private var winner: Paddle!
     
     override func didMove(to view: SKView) {
         
@@ -45,6 +48,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // Called before each frame is rendered
     override func update(_ currentTime: TimeInterval) {
+        
+        if self.score1 == self.goal {
+            self.winner = self.paddle1
+            self.winnerLabel.text = "You WON!"
+            self.winnerLabel.isHidden = false
+            self.stopGame()
+        } else if score2 == self.goal {
+            self.winner = self.paddle2
+            self.winnerLabel.text = "Phone won..."
+            self.winnerLabel.isHidden = false
+            self.stopGame()
+        }
+        
+        if self.score1 == 1 || self.score2 == 1 {
+            self.winnerLabel.isHidden = true
+        }
+        
+        // Called before each frame is rendered
         //Init enemy ball
         followBall(paddle: paddle2)
         
@@ -62,6 +83,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
     
+
     //Init score labels
     func setLabels(){
         self.score1 = 0
@@ -69,15 +91,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         self.label1.position = CGPoint(x: self.frame.width/2 - 40,y: self.frame.height/2 + 170)
         self.label2.position = CGPoint(x: self.frame.width/2 + 20,y: self.frame.height/2 + 170)
+        self.winnerLabel.position = CGPoint(x: self.frame.width/2 + 20,y: self.frame.height/2)
 
         self.label1.zRotation = CGFloat(300)
         self.label2.zRotation = CGFloat(300)
-
+        self.winnerLabel.zRotation = CGFloat(300)
+        
         self.label1.fontName = "Chalkduster"
         self.label2.fontName = "Chalkduster"
+        self.winnerLabel.fontName = "Chalkduster"
         
         self.addChild(label1)
         self.addChild(label2)
+        self.addChild(winnerLabel)
+        self.winnerLabel.isHidden = true
     }
     
     //Init game paddles
@@ -105,7 +132,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let delta = ball.position.y - paddle.position.y
         
         if ball.position.x > xPos {
-            
             if delta > 0{
                 paddle2.position.y += min(maxSpeed, delta)
 
@@ -140,6 +166,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func startGame() {
         label1.text = "\(score1!)"
         label2.text = "\(score2!)"
+        print("start game")
+        ball.physicsBody?.applyImpulse(CGVector(dx:300, dy:self.getRandomNum(lowerValue: -45, upperValue: 45)))
+    }
+    
+    func stopGame() {
+        self.score1 = 0
+        self.score2 = 0
+        label1.text = "\(score1!)"
+        label2.text = "\(score2!)"
+        self.winner = nil
+        ball.position = CGPoint(x: self.size.width/2,y: self.size.height/2)
+        ball.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
         ball.physicsBody?.applyImpulse(CGVector(dx:400, dy:self.getRandomNum(lowerValue: -45, upperValue: 45)))
     }
     
@@ -164,6 +202,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     //Add score to winning paddle. Set score lable
     func addScore(paddle: Paddle) {
+        print("added score")
         ball.position = CGPoint(x: self.size.width/2,y: self.size.height/2)
         ball.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
         
