@@ -18,12 +18,13 @@ class GameScene: SKScene {
     private var width: Double!
     private var score1: Int!
     private var score2: Int!
-    
     private var label1 = SKLabelNode()
     private var label2 = SKLabelNode()
     
     override func didMove(to view: SKView) {
         
+        
+
         self.setPaddles()
         self.setLabels()
         self.createArea()
@@ -50,7 +51,7 @@ class GameScene: SKScene {
         self.score2 = 0
         
         self.label1.position = CGPoint(x: self.frame.width/2 - 40,y: self.frame.height/2 + 170)
-        self.label2.position = CGPoint(x: self.frame.width/2 + 10,y: self.frame.height/2 + 170)
+        self.label2.position = CGPoint(x: self.frame.width/2 + 20,y: self.frame.height/2 + 170)
 
         self.label1.zRotation = CGFloat(300)
         self.label2.zRotation = CGFloat(300)
@@ -66,8 +67,8 @@ class GameScene: SKScene {
         self.height = 50
         self.width = 10
     
-        paddle1 = Paddle(width: self.width, height: self.height)
-        paddle2 = Paddle(width: self.width, height: self.height)
+        paddle1 = Paddle(width: self.width, height: self.height, paddleNum: 1)
+        paddle2 = Paddle(width: self.width, height: self.height, paddleNum: 2)
         
         paddle1.position = CGPoint(x: 30, y: self.size.height/2)
         paddle2.position = CGPoint(x: self.size.width-30, y: self.size.height/2)
@@ -97,14 +98,15 @@ class GameScene: SKScene {
     func createBall(num:Int){
         for _ in 1...num {
             ball = SKShapeNode(circleOfRadius: 10)
-            ball.fillColor = UIColor.white
+            ball.fillColor = UIColor.green
             ball.position = CGPoint(x: self.size.width/2,y: self.size.height/2)
-            ball.physicsBody = SKPhysicsBody(circleOfRadius: ball.frame.height/2)
+            ball.physicsBody = SKPhysicsBody(circleOfRadius: ball.frame.height/4)
             ball.physicsBody?.affectedByGravity = false
-            ball.physicsBody?.friction = 0
-            ball.physicsBody?.restitution = 1
-            ball.physicsBody?.linearDamping = 0
-            ball.physicsBody?.angularDamping = 0
+            ball.physicsBody?.mass = CGFloat(1)
+            ball.physicsBody?.friction = CGFloat(0)
+            ball.physicsBody?.restitution = CGFloat(1.0002)
+            ball.physicsBody?.linearDamping = CGFloat(0)
+            ball.physicsBody?.angularDamping = CGFloat(0)
             ball.name = "ball"
             self.addChild(ball)
         }
@@ -113,7 +115,7 @@ class GameScene: SKScene {
     func startGame() {
         label1.text = "\(score1!)"
         label2.text = "\(score2!)"
-        ball.physicsBody?.velocity = CGVector(dx:350, dy:self.getRandomNum(lowerValue: -45, upperValue: 45))
+        ball.physicsBody?.applyImpulse(CGVector(dx:300, dy:self.getRandomNum(lowerValue: -45, upperValue: 45)))
     }
     
     //Create player area with bounderies, together with physics
@@ -122,10 +124,10 @@ class GameScene: SKScene {
         self.backgroundColor = UIColor.black
         self.scaleMode = .aspectFill
         self.physicsBody = SKPhysicsBody(edgeLoopFrom: self.frame)
-        self.physicsBody?.friction = 0
-        self.physicsBody?.restitution = 1
-        self.physicsBody?.angularDamping = 0
-        self.physicsBody?.linearDamping = 0
+            self.physicsBody?.friction = CGFloat(0)
+        self.physicsBody?.restitution = CGFloat(0)
+        self.physicsBody?.angularDamping = CGFloat(0)
+        self.physicsBody?.linearDamping = CGFloat(0)
 
     }
     //Create random number
@@ -139,12 +141,12 @@ class GameScene: SKScene {
         
         if paddle == paddle1 {
             self.score1 = self.score1 + 1
-            ball.physicsBody?.applyImpulse(CGVector(dx: 4, dy: 2))
+            ball.physicsBody?.applyImpulse(CGVector(dx: 300, dy: 2))
 
         }
         else if paddle == paddle2 {
             self.score2 = self.score2 + 1
-            ball.physicsBody?.applyImpulse(CGVector(dx: -4, dy: -2))
+            ball.physicsBody?.applyImpulse(CGVector(dx: -300, dy: -2))
 
         }
         
@@ -156,16 +158,24 @@ class GameScene: SKScene {
     
     
     class Paddle: SKShapeNode{
-        init(width: Double, height: Double) {
+        private var paddlePhysicsbody: SKTexture!
+        init(width: Double, height: Double, paddleNum: Int) {
             super.init()
+            if paddleNum == 1 {
+                self.paddlePhysicsbody = SKTexture(imageNamed: "paddle_physicsbody2.png")
+            } else{
+                self.paddlePhysicsbody = SKTexture(imageNamed: "paddle_physicsbody.png")
+            }
+            let paddleNode = SKSpriteNode(texture: paddlePhysicsbody)
             self.path = CGPath(rect: CGRect(origin: CGPoint(x: -width/2, y: -height/2), size: CGSize(width: width, height: height)), transform: nil)
-            self.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(max(width/2.15, height/2.15)))
+            self.physicsBody = SKPhysicsBody(texture:paddlePhysicsbody,
+                                             size: CGSize(width: paddleNode.size.width, height: paddleNode.size.height))
             self.physicsBody?.affectedByGravity = false
-            self.physicsBody?.friction = 0
-            self.physicsBody?.restitution = 0
-            self.physicsBody?.angularDamping = 0
-            self.physicsBody?.linearDamping = 0
             self.physicsBody?.isDynamic = false
+            self.physicsBody?.friction = CGFloat(0)
+            self.physicsBody?.restitution = CGFloat(0)
+            self.physicsBody?.angularDamping = CGFloat(0)
+            self.physicsBody?.linearDamping = CGFloat(0)
             self.name = "paddle"
             self.fillColor = UIColor.white
 
