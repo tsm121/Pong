@@ -115,14 +115,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             ball = SKShapeNode(circleOfRadius: 10)
             ball.fillColor = UIColor.green
             ball.position = CGPoint(x: self.size.width/2,y: self.size.height/2)
-            ball.physicsBody = SKPhysicsBody(circleOfRadius: ball.frame.height/4)
+            ball.physicsBody = SKPhysicsBody(circleOfRadius: ball.frame.height/50)
             ball.physicsBody?.affectedByGravity = false
             ball.physicsBody?.mass = CGFloat(1)
             ball.physicsBody?.friction = CGFloat(0)
-            ball.physicsBody?.restitution = CGFloat(1.0002)
+            ball.physicsBody?.restitution = CGFloat(1)
             ball.physicsBody?.linearDamping = CGFloat(0)
             ball.physicsBody?.angularDamping = CGFloat(0)
-            ball.physicsBody = SKPhysicsBody(circleOfRadius: ball.frame.height/2)
             ball.physicsBody!.categoryBitMask = PhysicsCategory.Ball
             ball.physicsBody!.collisionBitMask = PhysicsCategory.Edge | PhysicsCategory.Paddle
             ball.physicsBody?.usesPreciseCollisionDetection = true
@@ -134,7 +133,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func startGame() {
         label1.text = "\(score1!)"
         label2.text = "\(score2!)"
-        ball.physicsBody?.applyImpulse(CGVector(dx:300, dy:self.getRandomNum(lowerValue: -45, upperValue: 45)))
+        ball.physicsBody?.applyImpulse(CGVector(dx:400, dy:self.getRandomNum(lowerValue: -45, upperValue: 45)))
     }
     
     //Create player area with bounderies, together with physics
@@ -163,12 +162,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         if paddle == paddle1 {
             self.score1 = self.score1 + 1
-            ball.physicsBody?.applyImpulse(CGVector(dx: 300, dy: 2))
+            ball.physicsBody?.applyImpulse(CGVector(dx: 400, dy: self.getRandomNum(lowerValue: -150, upperValue: 150)))
 
         }
         else if paddle == paddle2 {
             self.score2 = self.score2 + 1
-            ball.physicsBody?.applyImpulse(CGVector(dx: -300, dy: -2))
+            ball.physicsBody?.applyImpulse(CGVector(dx: -400, dy: self.getRandomNum(lowerValue: -180, upperValue: 180)))
 
         }
         
@@ -190,7 +189,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let paddleNode = SKSpriteNode(texture: paddlePhysicsbody)
             self.path = CGPath(rect: CGRect(origin: CGPoint(x: -width/2, y: -height/2), size: CGSize(width: width, height: height)), transform: nil)
             self.physicsBody = SKPhysicsBody(texture:paddlePhysicsbody,
-                                             size: CGSize(width: paddleNode.size.width, height: paddleNode.size.height))
+                                             size: CGSize(width: paddleNode.size.width-10, height: paddleNode.size.height+20))
             self.physicsBody?.affectedByGravity = false
             self.physicsBody?.isDynamic = false
             self.physicsBody?.friction = CGFloat(0)
