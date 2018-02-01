@@ -27,9 +27,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var winnerLabel = SKLabelNode()
     private let goal = 21
     private var winner: Paddle!
+    private var prop = ""
     
     override func didMove(to view: SKView) {
         
+        if let prop = self.userData?.value(forKey: "singleplayer") {
+            print("gameInfo is :\(prop)")
+        }
         physicsWorld.contactDelegate = self
         
         //Init game elements
@@ -214,6 +218,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         label1.text = "\(score1!)"
         label2.text = "\(score2!)"
+        
+        print(self.prop)
     }
     
     //Ball paddle class

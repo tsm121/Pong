@@ -11,9 +11,12 @@ import SpriteKit
 import GameplayKit
 
 class GameViewController: UIViewController {
-
+    
+    public var prop:String = ""
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         
         if let view = self.view as! SKView? {
             // Load the SKScene from 'GameScene.sks'
@@ -21,6 +24,9 @@ class GameViewController: UIViewController {
                 // Set the scale mode to scale to fit the window
                 scene.scaleMode = .aspectFill
                 
+                scene.userData = NSMutableDictionary()
+                scene.userData?.setObject(prop, forKey: "prop" as NSCopying)
+
                 // Present the scene
                 view.presentScene(scene)
             }
@@ -32,6 +38,7 @@ class GameViewController: UIViewController {
             view.showsNodeCount = false
             view.showsPhysics = false
         }
+        print(self.prop)
         
         
     }

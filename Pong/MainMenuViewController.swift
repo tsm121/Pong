@@ -9,10 +9,21 @@
 import UIKit
 
 class MainMenuViewController: UIViewController {
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?)
+    {
+        if segue.destination is GameViewController
+        {
+            let vc = segue.destination as? GameViewController
+            vc?.prop = "singleplayer"
+        }
+    }
 
     @IBAction func singlePlayerStart(_ sender: Any) {
         
-        performSegue(withIdentifier: "mySegue", sender: self)
+        
+        
+        performSegue(withIdentifier: "gameScene", sender: self)
         
     }
     override func viewDidLoad() {
@@ -25,7 +36,6 @@ class MainMenuViewController: UIViewController {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-    
 
     /*
     // MARK: - Navigation
