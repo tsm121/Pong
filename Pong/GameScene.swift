@@ -191,6 +191,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         label2.text = "\(score2!)"
     }
     
+    class singletonLabel {
+        
+    }
+    
     class ShapeFactory {
         
         private let ball: SKShapeNode
