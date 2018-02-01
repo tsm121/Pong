@@ -18,6 +18,12 @@ enum paddlePosition {
     case bottom
 }
 
+enum ballType {
+    case smallCircle
+    case bigCircle
+    case square
+}
+
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private var paddle1: Paddle!
@@ -43,7 +49,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.createArea()
         
         //Starting game
-        self.createBall(num: 1)
+        ball = ShapeFactory(view: self, shape: .square).makeShape()
+        self.addChild(ball)
         self.startGame()
     }
     
@@ -126,28 +133,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.addChild(paddle2)
     }
     
-
-    
-    //Init ball
-    func createBall(num:Int){
-        for _ in 1...num {
-            ball = SKShapeNode(circleOfRadius: 10)
-            ball.fillColor = UIColor.green
-            ball.position = CGPoint(x: self.size.width/2,y: self.size.height/2)
-            ball.physicsBody = SKPhysicsBody(circleOfRadius: ball.frame.height/50)
-            ball.physicsBody?.affectedByGravity = false
-            ball.physicsBody?.mass = CGFloat(1)
-            ball.physicsBody?.friction = CGFloat(0)
-            ball.physicsBody?.restitution = CGFloat(1.025)
-            ball.physicsBody?.linearDamping = CGFloat(0)
-            ball.physicsBody?.angularDamping = CGFloat(0)
-            ball.physicsBody!.categoryBitMask = PhysicsCategory.Ball
-            ball.physicsBody!.collisionBitMask = PhysicsCategory.Edge | PhysicsCategory.Paddle
-            ball.physicsBody?.usesPreciseCollisionDetection = true
-            ball.name = "ball"
-            self.addChild(ball)
-        }
-    }
     
     //Start game with ball speed and set score labels
     func startGame() {
@@ -206,7 +191,92 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         label2.text = "\(score2!)"
     }
     
-    class Paddle: SKShapeNode{
+    class ShapeFactory {
+        
+        private let ball: SKShapeNode
+        
+        init(view: SKScene, shape: ballType) {
+            
+            switch shape {
+            case .smallCircle:
+                self.ball = SmallCircle(view: view).smallCircle
+            case .bigCircle:
+                self.ball = BigCircle(view: view).bigCircle
+            case .square:
+                self.ball = Square(view: view).square
+            }
+            self.ball.physicsBody?.affectedByGravity = false
+            self.ball.physicsBody?.mass = CGFloat(1)
+            self.ball.physicsBody?.friction = CGFloat(0)
+            self.ball.physicsBody?.restitution = CGFloat(1.025)
+            self.ball.physicsBody?.linearDamping = CGFloat(0)
+            self.ball.physicsBody?.angularDamping = CGFloat(0)
+            self.ball.physicsBody!.categoryBitMask = PhysicsCategory.Ball
+            self.ball.physicsBody!.collisionBitMask = PhysicsCategory.Edge | PhysicsCategory.Paddle
+            self.ball.physicsBody?.usesPreciseCollisionDetection = true
+            
+            self.ball.position = CGPoint(x: view.size.width/2,y: view.size.height/2)
+        }
+        
+        func makeShape() -> SKShapeNode {
+            return self.ball
+        }
+        
+        class SmallCircle: SKShapeNode {
+            
+            public var smallCircle: SKShapeNode
+            
+            init(view: SKScene) {
+                smallCircle = SKShapeNode(circleOfRadius: 10)
+                smallCircle.fillColor = UIColor.green
+                smallCircle.physicsBody = SKPhysicsBody(circleOfRadius: smallCircle.frame.height/50)
+                smallCircle.name = "Smallball"
+                super.init()
+            }
+            
+            required init?(coder aDecoder: NSCoder) {
+                fatalError("init(coder:) has not been implemented")
+            }
+        }
+        
+        class BigCircle: SKShapeNode {
+            
+            public var bigCircle: SKShapeNode
+            
+            init(view: SKScene) {
+                bigCircle = SKShapeNode(circleOfRadius: 40)
+                bigCircle.fillColor = UIColor.blue
+                bigCircle.physicsBody = SKPhysicsBody(circleOfRadius: bigCircle.frame.height/5)
+                bigCircle.name = "Bigball"
+                super.init()
+            }
+            
+            required init?(coder aDecoder: NSCoder) {
+                fatalError("init(coder:) has not been implemented")
+            }
+        }
+        
+        class Square: SKShapeNode {
+            
+            public var square: SKShapeNode
+            
+            init(view: SKScene) {
+                square = SKShapeNode(rectOf: CGSize(width: 40, height: 40))
+                square.fillColor = UIColor.yellow
+                square.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 35, height: 35))
+                square.name = "Square"
+                super.init()
+            }
+            
+            required init?(coder aDecoder: NSCoder) {
+                fatalError("init(coder:) has not been implemented")
+            }
+        }
+        
+        
+    }
+    
+    class Paddle: SKShapeNode {
         
         private var paddlePhysicsbody: SKTexture!
         private var pp: paddlePosition
