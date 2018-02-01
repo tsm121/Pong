@@ -13,6 +13,11 @@ struct PhysicsCategory {
     static let Ball:        UInt32 = 0b100  //  4
 }
 
+enum paddlePosition {
+    case top
+    case bottom
+}
+
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private var paddle1: Paddle!
@@ -64,7 +69,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Called before each frame is rendered
         //Init enemy ball
-        followBall(paddle: paddle2)
+        if !self.paddle1.player{
+            self.paddle1.followBall(ball: self.ball, view: self)
+        }
+        if !self.paddle2.player{
+            self.paddle2.followBall(ball: self.ball, view: self)
+        }
         
         // Wall bounce hardcode
         if ball.position.y < 20 || ball.position.y > self.frame.height - 20 {
@@ -109,34 +119,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.height = 50
         self.width = 10
     
-        paddle1 = Paddle(width: self.width, height: self.height, paddleNum: 1)
-        paddle2 = Paddle(width: self.width, height: self.height, paddleNum: 2)
-        
-        paddle1.position = CGPoint(x: 30, y: self.size.height/2)
-        paddle2.position = CGPoint(x: self.size.width-30, y: self.size.height/2)
+        paddle1 = Paddle(width: self.width, height: self.height, player: true, paddlePosition: .bottom, view: self)
+        paddle2 = Paddle(width: self.width, height: self.height, player: false, paddlePosition: .top, view: self)
         
         self.addChild(paddle1)
         self.addChild(paddle2)
     }
     
-    //Enemy AI for hitting the ball
-    func followBall(paddle: SKShapeNode) {
-        
-        //Calculating delta between ball and paddle.
-        //Moves paddle with a given speed to match y-position to ball
-        let xPos = self.frame.width/2
-        let maxSpeed: CGFloat = 2.5
-        let delta = ball.position.y - paddle.position.y
-        
-        if ball.position.x > xPos {
-            if delta > 0{
-                paddle2.position.y += min(maxSpeed, delta)
 
-            } else if delta < 0 {
-                paddle2.position.y += max(-maxSpeed, delta)
-            }
-        }
-    }
     
     //Init ball
     func createBall(num:Int){
@@ -216,26 +206,43 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         label2.text = "\(score2!)"
     }
     
-    //Ball paddle class
     class Paddle: SKShapeNode{
-
-        private var paddlePhysicsbody: SKTexture!
         
-        init(width: Double, height: Double, paddleNum: Int) {
+        private var paddlePhysicsbody: SKTexture!
+        private var pp: paddlePosition
+        public var player: Bool
+
+        init(width: Double, height: Double, player: Bool, paddlePosition: paddlePosition, view: SKScene) {
+            self.pp = paddlePosition
+            self.player = player
             super.init()
+            self.setPaddleBody(width: width, height: height, view: view)
+            self.setPaddleSettings()
             
-            //Give each paddle a different physicsbody based on texture
-            if paddleNum == 1 {
+        }
+        
+        required init?(coder aDecoder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
+        }
+        
+        func setPaddleBody(width: Double, height: Double, view:SKScene){
+            switch self.pp {
+            case .bottom:
                 self.paddlePhysicsbody = SKTexture(imageNamed: "paddle_physicsbody2.png")
-            } else{
+                self.position = CGPoint(x: 30, y: view.size.height/2)
+            case .top:
                 self.paddlePhysicsbody = SKTexture(imageNamed: "paddle_physicsbody.png")
+                self.position = CGPoint(x: view.size.width-30, y: view.size.height/2)
             }
+            
             //Set physicsbody
             let paddleNode = SKSpriteNode(texture: paddlePhysicsbody)
             self.path = CGPath(rect: CGRect(origin: CGPoint(x: -width/2, y: -height/2), size: CGSize(width: width, height: height)), transform: nil)
             self.physicsBody = SKPhysicsBody(texture:paddlePhysicsbody,size: CGSize(width: paddleNode.size.width-10, height: paddleNode.size.height+20))
-
-            //Physics settings                                             
+        }
+        
+        func setPaddleSettings(){
+            //Physics settings
             self.physicsBody?.affectedByGravity = false
             self.physicsBody?.isDynamic = false
             self.physicsBody?.friction = CGFloat(0)
@@ -243,14 +250,35 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             self.physicsBody?.angularDamping = CGFloat(0)
             self.physicsBody?.linearDamping = CGFloat(0)
             
-            self.name = "paddle\(paddleNum)"
-            self.fillColor = UIColor.white
+            switch player {
+            case true:
+                self.fillColor = UIColor.white
+            case false:
+                self.fillColor = UIColor.red
+            }
         }
         
-        required init?(coder aDecoder: NSCoder) {
-            fatalError("init(coder:) has not been implemented")
+        //Enemy AI for hitting the ball
+        func followBall(ball: SKShapeNode, view:SKScene) {
+            
+            //Calculating delta between ball and paddle.
+            //Moves paddle with a given speed to match y-position to ball
+            let xPos = view.frame.width/2
+            let maxSpeed: CGFloat = 2.5
+            let delta = ball.position.y - self.position.y
+            
+            if ball.position.x > xPos {
+                if delta > 0{
+                    self.position.y += min(maxSpeed, delta)
+                    
+                } else if delta < 0 {
+                    self.position.y += max(-maxSpeed, delta)
+                }
+            }
         }
+        
     }
+
     
     //Listener for when touch began
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
