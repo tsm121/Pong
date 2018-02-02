@@ -31,13 +31,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var ball: SKShapeNode!  
     private var height: Double!
     private var width: Double!
-    private var score1: Int!
-    private var score2: Int!
-    private var label1 = SKLabelNode()
-    private var label2 = SKLabelNode()
     private var winnerLabel = SKLabelNode()
     private let goal = 21
     private var winner: Paddle!
+    private var labels: singletonLabel!
     
     override func didMove(to view: SKView) {
         
@@ -45,34 +42,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         //Init game elements
         self.setPaddles()
-        self.setLabels()
         self.createArea()
         
         //Starting game
-        ball = ShapeFactory(view: self, shape: .square).makeShape()
+        ball = ShapeFactory(view: self, shape: .smallCircle).makeShape()
         self.addChild(ball)
-        self.startGame()
+        
+        self.labels = singletonLabel(view: self, ball: self.ball)
+        self.labels.startGame()
     }
     
     // Called before each frame is rendered
     override func update(_ currentTime: TimeInterval) {
         
         //Winner/Loser lables
-        if self.score1 == self.goal {
-            self.winner = self.paddle1
-            self.winnerLabel.text = "You WON!"
-            self.winnerLabel.isHidden = false
-            self.stopGame()
-        } else if score2 == self.goal {
-            self.winner = self.paddle2
-            self.winnerLabel.text = "Phone won..."
-            self.winnerLabel.isHidden = false
-            self.stopGame()
-        }
-        
-        if self.score1 == 1 || self.score2 == 1 {
-            self.winnerLabel.isHidden = true
-        }
+        self.labels.hasWinner(paddle1: self.paddle1, paddle2: self.paddle2)
         
         // Called before each frame is rendered
         //Init enemy ball
@@ -91,35 +75,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Add scores
         if ball.position.x < paddle1.position.x {
-            addScore(paddle: paddle2)
+            self.labels.addScore(scoringPaddle: paddle2)
         } else if ball.position.x > paddle2.position.x {
-            addScore(paddle: paddle1)
+            self.labels.addScore(scoringPaddle: paddle1)
         }
     }
     
 
-    //Init score labels
-    func setLabels(){
-        self.score1 = 0
-        self.score2 = 0
-        
-        self.label1.position = CGPoint(x: self.frame.width/2 - 40,y: self.frame.height/2 + 170)
-        self.label2.position = CGPoint(x: self.frame.width/2 + 20,y: self.frame.height/2 + 170)
-        self.winnerLabel.position = CGPoint(x: self.frame.width/2 + 20,y: self.frame.height/2)
-
-        self.label1.zRotation = CGFloat(300)
-        self.label2.zRotation = CGFloat(300)
-        self.winnerLabel.zRotation = CGFloat(300)
-        
-        self.label1.fontName = "Chalkduster"
-        self.label2.fontName = "Chalkduster"
-        self.winnerLabel.fontName = "Chalkduster"
-        
-        self.addChild(label1)
-        self.addChild(label2)
-        self.addChild(winnerLabel)
-        self.winnerLabel.isHidden = true
-    }
+    
     
     //Init game paddles
     func setPaddles(){
@@ -135,23 +98,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     
     //Start game with ball speed and set score labels
-    func startGame() {
-        label1.text = "\(score1!)"
-        label2.text = "\(score2!)"
-        ball.physicsBody?.applyImpulse(CGVector(dx:400, dy:self.getRandomNum(lowerValue: -45, upperValue: 45)))
-    }
+
     
-    //Stop game when a paddle has gotten full score
-    func stopGame() {
-        self.score1 = 0
-        self.score2 = 0
-        label1.text = "\(score1!)"
-        label2.text = "\(score2!)"
-        self.winner = nil
-        ball.position = CGPoint(x: self.size.width/2,y: self.size.height/2)
-        ball.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
-        ball.physicsBody?.applyImpulse(CGVector(dx:400, dy:self.getRandomNum(lowerValue: -45, upperValue: 45)))
-    }
+    
     
     //Create player area with bounderies, together with physics
     func createArea() {
@@ -172,27 +121,103 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         return Int(arc4random_uniform(UInt32(upperValue - lowerValue + 1))) +   lowerValue
     }
     
-    //Add score to winning paddle. Set score lable
-    func addScore(paddle: Paddle) {
-        ball.position = CGPoint(x: self.size.width/2,y: self.size.height/2)
-        ball.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
-        
-        if paddle == paddle1 {
-            self.score1 = self.score1 + 1
-            ball.physicsBody?.applyImpulse(CGVector(dx: 400, dy: self.getRandomNum(lowerValue: -150, upperValue: 150)))
-
-        }
-        else if paddle == paddle2 {
-            self.score2 = self.score2 + 1
-            ball.physicsBody?.applyImpulse(CGVector(dx: -400, dy: self.getRandomNum(lowerValue: -180, upperValue: 180)))
-        }
-        
-        label1.text = "\(score1!)"
-        label2.text = "\(score2!)"
-    }
     
     class singletonLabel {
+        private var score1: Int!
+        private var score2: Int!
+        private var label1 = SKLabelNode()
+        private var label2 = SKLabelNode()
+        private var winnerLabel = SKLabelNode()
+        private let goal = 21
+        private let view: SKScene
+        private let ball: SKShapeNode
+        static let labels = singletonLabel(view: view, ball: ball)
+
         
+        private init(view: SKScene, ball: SKShapeNode) {
+            self.view = view
+            self.ball = ball
+            self.setLabels()
+        }
+        
+        func setLabels(){
+            self.score1 = 0
+            self.score2 = 0
+            
+            self.label1.position = CGPoint(x: self.view.frame.width/2 - 40,y: self.view.frame.height/2 + 170)
+            self.label2.position = CGPoint(x: self.view.frame.width/2 + 20,y: self.view.frame.height/2 + 170)
+            self.winnerLabel.position = CGPoint(x: self.view.frame.width/2 + 20,y: self.view.frame.height/2)
+            
+            self.label1.zRotation = CGFloat(300)
+            self.label2.zRotation = CGFloat(300)
+            self.winnerLabel.zRotation = CGFloat(300)
+            
+            self.label1.fontName = "Chalkduster"
+            self.label2.fontName = "Chalkduster"
+            self.winnerLabel.fontName = "Chalkduster"
+            
+            self.view.addChild(label1)
+            self.view.addChild(label2)
+            self.view.addChild(winnerLabel)
+            self.winnerLabel.isHidden = true
+        }
+        
+        func startGame() {
+            self.label1.text = "\(score1!)"
+            self.label2.text = "\(score2!)"
+            ball.physicsBody?.applyImpulse(CGVector(dx:400, dy:self.getRandomNum(lowerValue: -45, upperValue: 45)))
+        }
+        
+        func addScore(scoringPaddle: Paddle) {
+            self.ball.position = CGPoint(x: self.view.size.width/2,y: self.view.size.height/2)
+            self.ball.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
+            
+            if scoringPaddle.pp == .bottom {
+                self.score1 = self.score1 + 1
+                self.ball.physicsBody?.applyImpulse(CGVector(dx: 400, dy: self.getRandomNum(lowerValue: -150, upperValue: 150)))
+                
+            }
+            else if scoringPaddle.pp == .top {
+                self.score2 = self.score2 + 1
+                self.ball.physicsBody?.applyImpulse(CGVector(dx: -400, dy: self.getRandomNum(lowerValue: -180, upperValue: 180)))
+            }
+            
+            label1.text = "\(score1!)"
+            label2.text = "\(score2!)"
+        }
+        
+        func hasWinner (paddle1: SKShapeNode, paddle2: SKShapeNode){
+            if self.score1 == self.goal {
+                self.winnerLabel.text = "You WON!"
+                self.winnerLabel.isHidden = false
+                self.stopGame(winner: paddle1)
+            } else if score2 == self.goal {
+                self.winnerLabel.text = "Phone won..."
+                self.winnerLabel.isHidden = false
+                self.stopGame(winner: paddle2)
+            }
+            
+            if self.score1 == 1 || self.score2 == 1 {
+                self.winnerLabel.isHidden = true
+            }
+        }
+        
+        func stopGame(winner: SKShapeNode) {
+            self.score1 = 0
+            self.score2 = 0
+            label1.text = "\(score1!)"
+            label2.text = "\(score2!)"
+            //winner = nil
+            self.ball.position = CGPoint(x: self.view.size.width/2,y: self.view.size.height/2)
+            self.ball.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
+            self.ball.physicsBody?.applyImpulse(CGVector(dx:400, dy:self.getRandomNum(lowerValue: -45, upperValue: 45)))
+        }
+        
+        //Create random number between a given range
+        func getRandomNum(lowerValue:Int, upperValue:Int) -> Int{
+            return Int(arc4random_uniform(UInt32(upperValue - lowerValue + 1))) +   lowerValue
+        }
+
     }
     
     class ShapeFactory {
@@ -283,7 +308,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     class Paddle: SKShapeNode {
         
         private var paddlePhysicsbody: SKTexture!
-        private var pp: paddlePosition
+        public var pp: paddlePosition
         public var player: Bool
 
         init(width: Double, height: Double, player: Bool, paddlePosition: paddlePosition, view: SKScene) {
