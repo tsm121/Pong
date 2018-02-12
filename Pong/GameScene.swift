@@ -48,19 +48,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         ball = ShapeFactory(view: self, shape: .smallCircle).makeShape()
         self.addChild(ball)
         
-        self.labels = singletonLabel(view: self, ball: self.ball)
-        self.labels.startGame()
+        singletonLabel.labels.setLabels(view: self)
+        singletonLabel.labels.startGame(ball: self.ball)
     }
     
     // Called before each frame is rendered
     override func update(_ currentTime: TimeInterval) {
         
         //Winner/Loser lables
-        self.labels.hasWinner(paddle1: self.paddle1, paddle2: self.paddle2)
+        singletonLabel.labels.hasWinner(paddle1: self.paddle1, paddle2: self.paddle2, ball: self.ball, view: self)
         
         // Called before each frame is rendered
         //Init enemy ball
-        if !self.paddle1.player{
+        if !self.paddle1.player {
             self.paddle1.followBall(ball: self.ball, view: self)
         }
         if !self.paddle2.player{
@@ -75,9 +75,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Add scores
         if ball.position.x < paddle1.position.x {
-            self.labels.addScore(scoringPaddle: paddle2)
+            singletonLabel.labels.addScore(scoringPaddle: paddle2, ball: self.ball, view: self)
         } else if ball.position.x > paddle2.position.x {
-            self.labels.addScore(scoringPaddle: paddle1)
+            singletonLabel.labels.addScore(scoringPaddle: paddle1, ball: self.ball, view: self)
         }
     }
     
@@ -129,24 +129,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         private var label2 = SKLabelNode()
         private var winnerLabel = SKLabelNode()
         private let goal = 21
-        private let view: SKScene
-        private let ball: SKShapeNode
-        static let labels = singletonLabel(view: view, ball: ball)
+        public static let labels = singletonLabel()
 
         
-        private init(view: SKScene, ball: SKShapeNode) {
-            self.view = view
-            self.ball = ball
-            self.setLabels()
-        }
+        private init() {}
         
-        func setLabels(){
+        func setLabels(view: SKScene){
             self.score1 = 0
             self.score2 = 0
             
-            self.label1.position = CGPoint(x: self.view.frame.width/2 - 40,y: self.view.frame.height/2 + 170)
-            self.label2.position = CGPoint(x: self.view.frame.width/2 + 20,y: self.view.frame.height/2 + 170)
-            self.winnerLabel.position = CGPoint(x: self.view.frame.width/2 + 20,y: self.view.frame.height/2)
+            self.label1.position = CGPoint(x: view.frame.width/2 - 40,y: view.frame.height/2 + 170)
+            self.label2.position = CGPoint(x: view.frame.width/2 + 20,y: view.frame.height/2 + 170)
+            self.winnerLabel.position = CGPoint(x: view.frame.width/2 + 20,y: view.frame.height/2)
             
             self.label1.zRotation = CGFloat(300)
             self.label2.zRotation = CGFloat(300)
@@ -156,45 +150,45 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             self.label2.fontName = "Chalkduster"
             self.winnerLabel.fontName = "Chalkduster"
             
-            self.view.addChild(label1)
-            self.view.addChild(label2)
-            self.view.addChild(winnerLabel)
+            view.addChild(label1)
+            view.addChild(label2)
+            view.addChild(winnerLabel)
             self.winnerLabel.isHidden = true
         }
         
-        func startGame() {
+        func startGame(ball: SKShapeNode) {
             self.label1.text = "\(score1!)"
             self.label2.text = "\(score2!)"
             ball.physicsBody?.applyImpulse(CGVector(dx:400, dy:self.getRandomNum(lowerValue: -45, upperValue: 45)))
         }
         
-        func addScore(scoringPaddle: Paddle) {
-            self.ball.position = CGPoint(x: self.view.size.width/2,y: self.view.size.height/2)
-            self.ball.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
+        func addScore(scoringPaddle: Paddle, ball: SKShapeNode, view: SKScene) {
+            ball.position = CGPoint(x: view.size.width/2,y: view.size.height/2)
+            ball.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
             
             if scoringPaddle.pp == .bottom {
                 self.score1 = self.score1 + 1
-                self.ball.physicsBody?.applyImpulse(CGVector(dx: 400, dy: self.getRandomNum(lowerValue: -150, upperValue: 150)))
+                ball.physicsBody?.applyImpulse(CGVector(dx: 400, dy: self.getRandomNum(lowerValue: -150, upperValue: 150)))
                 
             }
             else if scoringPaddle.pp == .top {
                 self.score2 = self.score2 + 1
-                self.ball.physicsBody?.applyImpulse(CGVector(dx: -400, dy: self.getRandomNum(lowerValue: -180, upperValue: 180)))
+                ball.physicsBody?.applyImpulse(CGVector(dx: -400, dy: self.getRandomNum(lowerValue: -180, upperValue: 180)))
             }
             
             label1.text = "\(score1!)"
             label2.text = "\(score2!)"
         }
         
-        func hasWinner (paddle1: SKShapeNode, paddle2: SKShapeNode){
+        func hasWinner (paddle1: SKShapeNode, paddle2: SKShapeNode, ball: SKShapeNode, view: SKScene){
             if self.score1 == self.goal {
                 self.winnerLabel.text = "You WON!"
                 self.winnerLabel.isHidden = false
-                self.stopGame(winner: paddle1)
+                self.stopGame(winner: paddle1, ball: ball, view: view)
             } else if score2 == self.goal {
                 self.winnerLabel.text = "Phone won..."
                 self.winnerLabel.isHidden = false
-                self.stopGame(winner: paddle2)
+                self.stopGame(winner: paddle2, ball: ball, view: view)
             }
             
             if self.score1 == 1 || self.score2 == 1 {
@@ -202,15 +196,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
         }
         
-        func stopGame(winner: SKShapeNode) {
+        func stopGame(winner: SKShapeNode, ball: SKShapeNode, view: SKScene) {
             self.score1 = 0
             self.score2 = 0
             label1.text = "\(score1!)"
             label2.text = "\(score2!)"
             //winner = nil
-            self.ball.position = CGPoint(x: self.view.size.width/2,y: self.view.size.height/2)
-            self.ball.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
-            self.ball.physicsBody?.applyImpulse(CGVector(dx:400, dy:self.getRandomNum(lowerValue: -45, upperValue: 45)))
+            ball.position = CGPoint(x: view.size.width/2,y: view.size.height/2)
+            ball.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
+            ball.physicsBody?.applyImpulse(CGVector(dx:400, dy:self.getRandomNum(lowerValue: -45, upperValue: 45)))
         }
         
         //Create random number between a given range
